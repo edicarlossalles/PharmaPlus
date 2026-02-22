@@ -5,5 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    Object findByMatricula(int attr0);
+    // Retorno tipado corretamente como Usuario (não Object)
+    Usuario findByMatricula(int matricula);
 }

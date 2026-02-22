@@ -8,12 +8,12 @@ import lombok.Data;
 
 @Data
 @Entity
-public class Usuario{
+public class Usuario {
+
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
     private int matricula;
     private String senha;
-
-    
 }
