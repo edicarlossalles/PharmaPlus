@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pharma Plus - Home</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <!-- Estilos da home -->
+  <link rel="stylesheet" href="home.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-brand">
+    <span class="dot"></span>
+    Pharma Plus
+  </div>
+  <div class="header-right">
+    <button class="header-icon-btn" title="Solicitações" onclick="abrirSidePanel('solic')">
+      💬
+      <span class="badge" id="solic-badge">0</span>
+    </button>
+    <button class="header-icon-btn" title="Notificações">🔔</button>
+    <div class="user-menu-wrap" id="user-menu-wrap">
+      <div class="profile-chip" onclick="toggleDropdown()">
+        <div class="avatar" id="header-avatar">?</div>
+        <span class="profile-name" id="header-nome">Carregando...</span>
+        <span style="font-size:11px;color:var(--gray-400);margin-left:2px">▾</span>
+      </div>
+      <div class="user-dropdown" id="user-dropdown">
+        <div class="dropdown-header">
+          <div class="d-nome"  id="dropdown-nome">—</div>
+          <div class="d-cargo" id="dropdown-cargo">—</div>
+        </div>
+        <button class="dropdown-item" onclick="abrirSidePanel('perfil'); fecharDropdown()">
+          <span class="d-icon">👤</span> Meu Perfil
+        </button>
+        <button class="dropdown-item" onclick="abrirSidePanel('solic'); fecharDropdown()">
+          <span class="d-icon">💬</span> Solicitações
+          <span class="badge" id="solic-badge-dropdown" style="position:static;margin-left:auto">0</span>
+        </button>
+        <a href="index.html" class="dropdown-item danger">
+          <span class="d-icon">🚪</span> Sair
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- OVERLAY DO SIDE PANEL -->
+<div class="side-overlay" id="side-overlay" onclick="fecharSidePanel()"></div>
+
+<!-- SIDE PANEL: PERFIL -->
+<div class="side-panel" id="side-perfil">
+  <div class="side-panel-header">
+    <h2>👤 Meu Perfil</h2>
+    <button class="side-close" onclick="fecharSidePanel()">✕</button>
+  </div>
+  <div class="side-panel-body">
+    <div class="profile-banner"></div>
+    <div class="profile-ava-wrap">
+      <div class="profile-ava" id="perfil-ava">?</div>
+    </div>
+    <div class="profile-username" id="perfil-nome">—</div>
+    <div class="profile-role"     id="perfil-cargo">—</div>
+    <hr class="profile-divider" style="margin-top:16px"/>
+    <div class="form-group">
+      <label>Nome Completo</label>
+      <input type="text" id="perfil-input-nome" />
+    </div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="perfil-input-email" />
+    </div>
+    <div class="form-group">
+      <label>Cargo</label>
+      <input type="text" id="perfil-input-cargo" />
+    </div>
+    <div class="form-group">
+      <label>Nova Senha</label>
+      <input type="password" placeholder="Deixe em branco para manter" />
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="salvarPerfil()">Salvar Alterações</button>
+      <a href="index.html"><button class="btn btn-red" type="button">Sair</button></a>
+    </div>
+  </div>
+</div>
+
+<!-- SIDE PANEL: SOLICITAÇÕES -->
+<div class="side-panel" id="side-solic">
+  <div class="side-panel-header">
+    <h2>💬 Solicitações</h2>
+    <button class="side-close" onclick="fecharSidePanel()">✕</button>
+  </div>
+  <div class="side-panel-body">
+    <button class="btn btn-primary" style="width:100%;margin-bottom:20px" onclick="abrirModalSolic()">
+      + Nova Solicitação
+    </button>
+    <div class="solic-list" id="lista-solicitacoes"></div>
+  </div>
+</div>
+
+<!-- ABAS -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="openTab('estoque')" id="tab-estoque">
+    <span class="tab-icon">📦</span> Estoque Disponível
+  </button>
+  <button class="tab-btn" onclick="openTab('pedidos')" id="tab-pedidos">
+    <span class="tab-icon">🛒</span> Pedidos para Estoque
+  </button>
+  <button class="tab-btn" onclick="openTab('buscar')" id="tab-buscar">
+    <span class="tab-icon">🔍</span> Buscar Medicamento
+  </button>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="content">
+
+  <!-- Estoque Disponível -->
+  <div class="panel active" id="panel-estoque">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Estoque Disponível</div>
+        <div class="section-subtitle">Medicamentos atualmente disponíveis na farmácia</div>
+      </div>
+      <button class="btn btn-primary">+ Adicionar Produto</button>
+    </div>
+    <div class="cards-row">
+      <div class="stat-card accent">
+        <div class="label">Total Disponível</div>
+        <div class="value" id="stat-total">—</div>
+        <div class="sub">itens no estoque</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Estoque Baixo</div>
+        <div class="value" id="stat-baixo" style="color:#f59e0b">—</div>
+        <div class="sub">abaixo do mínimo</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Categorias</div>
+        <div class="value">—</div>
+        <div class="sub">tipos cadastrados</div>
+      </div>
+    </div>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-estoque" placeholder="Filtrar por nome, categoria..."
+        oninput="filtrarTabela('tabela-estoque', this.value)" />
+    </div>
+    <div class="table-wrapper">
+      <table id="tabela-estoque">
+        <thead>
+          <tr>
+            <th>Medicamento</th><th>Categoria</th><th>Quantidade</th>
+            <th>Validade</th><th>Prateleira</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-estoque"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pedidos para Estoque -->
+  <div class="panel" id="panel-pedidos">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Pedidos para Estoque</div>
+        <div class="section-subtitle">Medicamentos em falta — solicitar reposição</div>
+      </div>
+      <button class="btn btn-primary" onclick="abrirModalPedido()">+ Novo Pedido</button>
+    </div>
+    <div class="table-wrapper">
+      <table id="tabela-pedidos">
+        <thead>
+          <tr>
+            <th>Medicamento</th><th>Motivo</th><th>Solicitado por</th>
+            <th>Data</th><th>Prioridade</th><th>Situação</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-pedidos"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Buscar Medicamento -->
+  <div class="panel" id="panel-buscar">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Buscar Medicamento</div>
+        <div class="section-subtitle">Clique em um medicamento para ver o resumo e localização</div>
+      </div>
+    </div>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-buscar" placeholder="Digite o nome do medicamento..."
+        oninput="filtrarTabela('tabela-buscar', this.value)" />
+    </div>
+    <div class="table-wrapper">
+      <table id="tabela-buscar">
+        <thead>
+          <tr>
+            <th>Nome</th><th>Princípio Ativo</th><th>Fabricante</th>
+            <th>Categoria</th><th>Prateleira</th><th>Qtd.</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-buscar"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- MODAL: DETALHE DO MEDICAMENTO -->
+<div class="modal-overlay" id="modal-med">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-med-nome">Nome do Medicamento</h2>
+      <button class="modal-close" onclick="fecharModal('modal-med')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="med-info-grid">
+        <div class="med-info-item"><label>Princípio Ativo</label><p id="modal-ativo">—</p></div>
+        <div class="med-info-item"><label>Fabricante</label><p id="modal-fab">—</p></div>
+        <div class="med-info-item"><label>Categoria</label><p id="modal-cat">—</p></div>
+        <div class="med-info-item"><label>Validade</label><p id="modal-val">—</p></div>
+        <div class="med-info-item"><label>Quantidade</label><p id="modal-qtd">—</p></div>
+        <div class="med-info-item"><label>Dosagem</label><p id="modal-dos">—</p></div>
+      </div>
+      <div class="shelf-display">
+        <span class="shelf-icon">🗄️</span>
+        <div class="shelf-info">
+          <label>Localização na Prateleira</label>
+          <p id="modal-prat">—</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NOVO PEDIDO -->
+<div class="modal-overlay" id="modal-pedido">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Novo Pedido de Estoque</h2>
+      <button class="modal-close" onclick="fecharModal('modal-pedido')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nome do Medicamento</label>
+        <input type="text" id="pedido-nome" placeholder="Ex: Dipirona 500mg" />
+      </div>
+      <div class="form-group">
+        <label>Motivo da Falta</label>
+        <textarea id="pedido-motivo" placeholder="Descreva o motivo da solicitação..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Prioridade</label>
+        <select id="pedido-prioridade">
+          <option value="Alta">🔴 Alta</option>
+          <option value="Média" selected>🟡 Média</option>
+          <option value="Baixa">🟢 Baixa</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-primary" onclick="adicionarPedido()">Enviar Pedido</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-pedido')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NOVA SOLICITAÇÃO -->
+<div class="modal-overlay" id="modal-solic">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nova Solicitação</h2>
+      <button class="modal-close" onclick="fecharModal('modal-solic')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="solic-tipo">
+          <option value="horario">📅 Agendar Horário com Farmacêutico</option>
+          <option value="duvida">❓ Tirar Dúvida</option>
+          <option value="farmaceutico">💊 Solicitação do Farmacêutico ao Atendente</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Mensagem</label>
+        <textarea id="solic-msg" placeholder="Descreva sua solicitação..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Data/Hora (se agendamento)</label>
+        <input type="datetime-local" id="solic-data" />
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-primary" onclick="adicionarSolic()">Enviar</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-solic')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript da home — carregado no final do body -->
+<script src="home.js"></script>
+
+</body>
+</html>
