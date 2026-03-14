@@ -2,19 +2,23 @@ package com.pharmaplus.PharmaPlus.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-@Data
 @Entity
-public class Usuario {
+@Table(name ="Medicamento")
+@Data
+@NoArgsConstructor
+public class Medicamento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(unique = true)
     @NonNull
-    private int matricula;
+    private String nome;
     @NonNull
-    private String senha;
+    private String descricao;
+    @NonNull
+    private String prioridade;
 }
