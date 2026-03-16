@@ -8,16 +8,50 @@
    USUÁRIO LOGADO — fonte única da verdade
    Futuramente: preencher via fetch('/api/me')
 ════════════════════════════════════════ */
+const API_URL = "http://localhost:8080";
+
+// Pega o token salvo no login
+const token = localStorage.getItem("token");
+
+// Se não tiver token, redireciona para login
+if (!token) {
+  window.location.href = "index.html";
+} else {
+  // Chama a API para pegar os dados do usuário logado
+  fetch(`${API_URL}/home/me`, {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  })
+      .then(response => {
+        if (!response.ok) {
+          // Token inválido ou expirado
+          localStorage.removeItem("token");
+          window.location.href = "index.html";
+          throw new Error("Token inválido ou expirado");
+        }
+        return response.json();
+      })
+      .then(user => {
+        // Atualiza a UI com os dados retornados
+        atualizarUI(user);
+      })
+      .catch(error => {
+        console.error("Erro ao buscar usuário logado:", error);
+      });
+}
+/*
 const usuarioLogado = {
   nome:  'Ana Silva',                    // TODO: vir da API/sessão
   cargo: 'Atendente',
   email: 'ana.silva@pharmaplus.com',
   get inicial() { return this.nome.charAt(0).toUpperCase(); }
-};
+};*/
 
 /* Atualiza TODOS os pontos da UI que exibem dados do usuário */
-function atualizarUI() {
-  const { nome, cargo, email, inicial } = usuarioLogado;
+function atualizarUI(usuario) {
+  const { nome, cargo, email, } = usuario;
+  const inicial = nome.charAt(0).toUpperCase();
 
   // Header
   document.getElementById('header-avatar').textContent  = inicial;
@@ -38,6 +72,10 @@ function atualizarUI() {
   document.getElementById('perfil-input-cargo').value  = cargo;
 }
 
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "index.html";
+}
 
 /* ════════════════════════════════════════
    DADOS MOCKADOS — substituir pela API

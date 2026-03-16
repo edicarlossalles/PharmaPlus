@@ -2,9 +2,11 @@ package com.pharmaplus.PharmaPlus.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Data
+@NoArgsConstructor
 @Entity
 public class Usuario {
 
@@ -17,4 +19,8 @@ public class Usuario {
     private int matricula;
     @NonNull
     private String senha;
+
+    private String nome;
+    private String cargo;
+    private String email;
 }
