@@ -5,22 +5,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+@Entity
+@Table(name ="Medicamento")
 @Data
 @NoArgsConstructor
-@Entity
-public class Usuario {
+public class Medicamento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(unique = true)
     @NonNull
-    private int matricula;
-    @NonNull
-    private String senha;
-
     private String nome;
-    private String cargo;
-    private String email;
+    @NonNull
+    private String descricao;
+    @NonNull
+    private String prioridade;
 }
