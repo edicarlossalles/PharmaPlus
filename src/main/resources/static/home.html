@@ -86,7 +86,7 @@
     </div>
     <div style="display:flex;gap:10px;margin-top:8px">
       <button class="btn btn-primary" style="flex:1" onclick="salvarPerfil()">Salvar Alterações</button>
-      <a href="index.html"><button class="btn btn-red" type="button" onClick="logout()">Sair</button></a>
+      <button class="btn btn-red" type="button" onclick="logout()">Sair</button>
     </div>
   </div>
 </div>
@@ -128,7 +128,7 @@
         <div class="section-title">Estoque Disponível</div>
         <div class="section-subtitle">Medicamentos atualmente disponíveis na farmácia</div>
       </div>
-      <button class="btn btn-primary">+ Adicionar Produto</button>
+      <button class="btn btn-primary" onclick="abrirModalProduto()">+ Adicionar Produto</button>
     </div>
     <div class="cards-row">
       <div class="stat-card accent">
@@ -302,6 +302,53 @@
         <button class="btn btn-primary" onclick="adicionarSolic()">Enviar</button>
         <button class="btn btn-outline" onclick="fecharModal('modal-solic')">Cancelar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADICIONAR PRODUTO -->
+<div class="modal-overlay" id="modal-produto">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Adicionar Medicamento</h2>
+      <button class="modal-close" onclick="fecharModal('modal-produto')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nome do Medicamento</label>
+        <input type="text" id="produto-nome" placeholder="Ex: Dipirona 500mg" />
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="produto-categoria">
+          <option value="Não Controlado">💊 Não Controlado</option>
+          <option value="Controlado">🔒 Controlado (Receita Obrigatória)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Quantidade de Caixas</label>
+        <input type="number" id="produto-quantidade" placeholder="Ex: 20" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Validade</label>
+        <input type="date" id="produto-validade" />
+      </div>
+      <div class="form-group">
+        <label>Prateleira</label>
+        <input type="text" id="produto-prateleira" placeholder="Ex: A3 - Fileira 2" />
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="produto-status">
+          <option value="Disponível">✅ Disponível na Prateleira</option>
+          <option value="Estoque">📦 Só no Estoque</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-primary" onclick="adicionarProduto()">Salvar Medicamento</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-produto')">Cancelar</button>
+      </div>
+      <div class="msg" id="msg-produto" style="margin-top:10px"></div>
     </div>
   </div>
 </div>

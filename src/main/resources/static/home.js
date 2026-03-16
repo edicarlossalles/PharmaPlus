@@ -1,14 +1,6 @@
-/* ════════════════════════════════════════
-   PHARMA PLUS — home.js
-   Lógica da tela principal (home.html)
-════════════════════════════════════════ */
-
-
-/* ════════════════════════════════════════
-   USUÁRIO LOGADO — fonte única da verdade
-   Futuramente: preencher via fetch('/api/me')
-════════════════════════════════════════ */
 const API_URL = "http://localhost:8080";
+
+let usuarioLogado = null;
 
 // Pega o token salvo no login
 const token = localStorage.getItem("token");
@@ -33,24 +25,17 @@ if (!token) {
         return response.json();
       })
       .then(user => {
-        // Atualiza a UI com os dados retornados
+        usuarioLogado = user; // salva globalmente para uso em adicionarPedido/adicionarSolic
         atualizarUI(user);
       })
       .catch(error => {
         console.error("Erro ao buscar usuário logado:", error);
       });
 }
-/*
-const usuarioLogado = {
-  nome:  'Ana Silva',                    // TODO: vir da API/sessão
-  cargo: 'Atendente',
-  email: 'ana.silva@pharmaplus.com',
-  get inicial() { return this.nome.charAt(0).toUpperCase(); }
-};*/
 
 /* Atualiza TODOS os pontos da UI que exibem dados do usuário */
 function atualizarUI(usuario) {
-  const { nome, cargo, email, } = usuario;
+  const { nome, cargo, email } = usuario;
   const inicial = nome.charAt(0).toUpperCase();
 
   // Header
@@ -77,11 +62,6 @@ function logout() {
   window.location.href = "index.html";
 }
 
-/* ════════════════════════════════════════
-   DADOS MOCKADOS — substituir pela API
-   Cada array pode ser preenchido via
-   fetch() / axios futuramente.
-════════════════════════════════════════ */
 
 const medicamentos = [
   /*
@@ -129,9 +109,6 @@ const solicitacoes = [
 ];
 
 
-/* ════════════════════════════════════════
-   DROPDOWN DO USUÁRIO
-════════════════════════════════════════ */
 function toggleDropdown() {
   document.getElementById('user-dropdown').classList.toggle('open');
 }
@@ -147,9 +124,6 @@ document.addEventListener('click', e => {
 });
 
 
-/* ════════════════════════════════════════
-   SIDE PANELS (PERFIL / SOLICITAÇÕES)
-════════════════════════════════════════ */
 function abrirSidePanel(tipo) {
   fecharDropdown();
   document.getElementById('side-overlay').classList.add('open');
@@ -165,9 +139,6 @@ function fecharSidePanel() {
 }
 
 
-/* ════════════════════════════════════════
-   NAVEGAÇÃO DE ABAS
-════════════════════════════════════════ */
 function openTab(nome) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -176,57 +147,69 @@ function openTab(nome) {
 }
 
 
-/* ════════════════════════════════════════
-   RENDERIZAR ESTOQUE
-════════════════════════════════════════ */
-function renderEstoque() {
+async function renderEstoque() {
   const tbody     = document.getElementById('corpo-estoque');
   const statTotal = document.getElementById('stat-total');
   const statBaixo = document.getElementById('stat-baixo');
 
-  if (medicamentos.length === 0) {
+  try {
+    const res  = await fetch(`${API_URL}/estoque/listar`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const lista = await res.json();
+
+    if (lista.length === 0) {
+      tbody.innerHTML = `
+        <tr><td colspan="6">
+          <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <p>Nenhum medicamento cadastrado ainda.</p>
+            <p style="margin-top:6px;font-size:12px">Clique em + Adicionar Produto para começar.</p>
+          </div>
+        </td></tr>`;
+      statTotal.textContent = '0';
+      statBaixo.textContent = '0';
+      return;
+    }
+
+    let baixo = 0;
+    tbody.innerHTML = lista.map(m => {
+      const statusPill = m.status === 'Disponível'
+        ? `<span class="pill pill-green">✓ Disponível</span>`
+        : `<span class="pill pill-amber">📦 Estoque</span>`;
+
+      if (m.status !== 'Disponível') baixo++;
+
+      return `
+        <tr onclick="abrirModal(${m.id})" style="cursor:pointer">
+          <td><strong>${m.nome}</strong></td>
+          <td>${m.categoria}</td>
+          <td>${m.quantidade}</td>
+          <td>${formatarData(m.validade)}</td>
+          <td><span style="font-family:'DM Mono',monospace;font-size:13px">${m.prateleira}</span></td>
+          <td>${statusPill}</td>
+        </tr>`;
+    }).join('');
+
+    statTotal.textContent = lista.length;
+    statBaixo.textContent = baixo;
+
+    // guarda lista globalmente para uso no modal
+    window._medicamentos = lista;
+
+  } catch (err) {
+    console.error('Erro ao carregar estoque:', err);
     tbody.innerHTML = `
       <tr><td colspan="6">
         <div class="empty-state">
-          <div class="empty-icon">📦</div>
-          <p>Nenhum medicamento cadastrado ainda.</p>
-          <p style="margin-top:6px;font-size:12px">Conecte ao banco de dados para exibir os itens.</p>
+          <div class="empty-icon">⚠️</div>
+          <p>Erro ao carregar estoque. Verifique o servidor.</p>
         </div>
       </td></tr>`;
-    statTotal.textContent = '0';
-    statBaixo.textContent = '0';
-    return;
   }
-
-  let baixo = 0;
-  tbody.innerHTML = medicamentos.map(m => {
-    const status = m.statusEstoque === 'OK'
-      ? `<span class="pill pill-green">✓ OK</span>`
-      : m.statusEstoque === 'Baixo'
-        ? `<span class="pill pill-amber">⚠ Baixo</span>`
-        : `<span class="pill pill-red">✕ Crítico</span>`;
-
-    if (m.statusEstoque !== 'OK') baixo++;
-
-    return `
-      <tr onclick="abrirModal(${m.id})">
-        <td><strong>${m.nome}</strong></td>
-        <td>${m.categoria}</td>
-        <td>${m.quantidade}</td>
-        <td>${formatarData(m.validade)}</td>
-        <td><span style="font-family:'DM Mono',monospace;font-size:13px">${m.prateleira}</span></td>
-        <td>${status}</td>
-      </tr>`;
-  }).join('');
-
-  statTotal.textContent = medicamentos.length;
-  statBaixo.textContent = baixo;
 }
 
 
-/* ════════════════════════════════════════
-   RENDERIZAR PEDIDOS
-════════════════════════════════════════ */
 function renderPedidos() {
   const tbody = document.getElementById('corpo-pedidos');
 
@@ -267,9 +250,6 @@ function renderPedidos() {
 }
 
 
-/* ════════════════════════════════════════
-   RENDERIZAR BUSCA
-════════════════════════════════════════ */
 function renderBuscar() {
   const tbody = document.getElementById('corpo-buscar');
 
@@ -296,9 +276,6 @@ function renderBuscar() {
 }
 
 
-/* ════════════════════════════════════════
-   RENDERIZAR SOLICITAÇÕES
-════════════════════════════════════════ */
 function renderSolicitacoes() {
   const lista          = document.getElementById('lista-solicitacoes');
   const badge          = document.getElementById('solic-badge');
@@ -344,22 +321,88 @@ function renderSolicitacoes() {
 }
 
 
-/* ════════════════════════════════════════
-   MODAL: DETALHE DO MEDICAMENTO
-════════════════════════════════════════ */
+
 function abrirModal(id) {
-  const m = medicamentos.find(x => x.id === id);
+  const lista = window._medicamentos || [];
+  const m = lista.find(x => x.id === id);
   if (!m) return;
 
   document.getElementById('modal-med-nome').textContent = m.nome;
-  document.getElementById('modal-ativo').textContent    = m.ativo;
-  document.getElementById('modal-fab').textContent      = m.fabricante;
+  document.getElementById('modal-ativo').textContent    = m.categoria;
+  document.getElementById('modal-fab').textContent      = m.status;
   document.getElementById('modal-cat').textContent      = m.categoria;
   document.getElementById('modal-val').textContent      = formatarData(m.validade);
-  document.getElementById('modal-qtd').textContent      = m.quantidade + ' unidades';
-  document.getElementById('modal-dos').textContent      = m.dosagem;
+  document.getElementById('modal-qtd').textContent      = m.quantidade + ' caixas';
+  document.getElementById('modal-dos').textContent      = m.status;
   document.getElementById('modal-prat').textContent     = m.prateleira;
   document.getElementById('modal-med').classList.add('open');
+}
+
+
+function abrirModalProduto() {
+  document.getElementById('modal-produto').classList.add('open');
+}
+
+async function adicionarProduto() {
+  const nome       = document.getElementById('produto-nome').value.trim();
+  const categoria  = document.getElementById('produto-categoria').value;
+  const quantidade = parseInt(document.getElementById('produto-quantidade').value);
+  const validade   = document.getElementById('produto-validade').value;
+  const prateleira = document.getElementById('produto-prateleira').value.trim();
+  const status     = document.getElementById('produto-status').value;
+  const msgEl      = document.getElementById('msg-produto');
+  const btn        = document.querySelector('#modal-produto .btn-primary');
+
+  if (!nome || !categoria || !quantidade || !validade || !prateleira) {
+    msgEl.className   = 'msg error';
+    msgEl.textContent = 'Preencha todos os campos obrigatórios.';
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Salvando...';
+  msgEl.className = 'msg';
+
+  try {
+    const res = await fetch(`${API_URL}/estoque/salvar`, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ nome, categoria, quantidade, validade, prateleira, status })
+    });
+
+    const data = await res.json();
+
+    if (!data.sucesso) {
+      msgEl.className   = 'msg error';
+      msgEl.textContent = data.mensagem || 'Erro ao salvar.';
+      return;
+    }
+
+    msgEl.className   = 'msg success';
+    msgEl.textContent = 'Medicamento salvo com sucesso!';
+
+    // Limpa o formulário e atualiza a tabela
+    setTimeout(() => {
+      fecharModal('modal-produto');
+      document.getElementById('produto-nome').value      = '';
+      document.getElementById('produto-quantidade').value = '';
+      document.getElementById('produto-validade').value   = '';
+      document.getElementById('produto-prateleira').value = '';
+      msgEl.className = 'msg';
+      renderEstoque();
+    }, 800);
+
+  } catch (err) {
+    console.error('Erro ao salvar produto:', err);
+    msgEl.className   = 'msg error';
+    msgEl.textContent = 'Não foi possível conectar ao servidor.';
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Salvar Medicamento';
+  }
 }
 
 function fecharModal(id) {
@@ -376,9 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-/* ════════════════════════════════════════
-   MODAL: NOVO PEDIDO
-════════════════════════════════════════ */
 function abrirModalPedido() {
   document.getElementById('modal-pedido').classList.add('open');
 }
@@ -398,7 +438,7 @@ function adicionarPedido() {
     id:          pedidos.length + 1,
     medicamento: nome,
     motivo:      motivo,
-    solicitante: usuarioLogado.nome,   // vem do objeto central
+    solicitante: usuarioLogado ? usuarioLogado.nome : 'Usuário',
     data:        new Date().toISOString().split('T')[0],
     prioridade:  prioridade,
     situacao:    'Pendente'
@@ -413,9 +453,6 @@ function adicionarPedido() {
 }
 
 
-/* ════════════════════════════════════════
-   MODAL: NOVA SOLICITAÇÃO
-════════════════════════════════════════ */
 function abrirModalSolic() {
   document.getElementById('modal-solic').classList.add('open');
 }
@@ -431,7 +468,7 @@ function adicionarSolic() {
 
   const nova = {
     id:       solicitacoes.length + 1,
-    de:       usuarioLogado.nome,        // vem do objeto central
+    de:       usuarioLogado ? usuarioLogado.nome : 'Usuário',
     tipo:     tipo,
     mensagem: msg,
     data:     'Agora',
@@ -445,10 +482,6 @@ function adicionarSolic() {
   document.getElementById('solic-msg').value = '';
 }
 
-
-/* ════════════════════════════════════════
-   FILTRO DE TABELA
-════════════════════════════════════════ */
 function filtrarTabela(tabelaId, termo) {
   const linhas = document.querySelectorAll(`#${tabelaId} tbody tr`);
   linhas.forEach(tr => {
@@ -472,20 +505,18 @@ function salvarPerfil() {
   }
 
   // Atualiza o objeto central — todos os pontos da UI refletem automaticamente
-  usuarioLogado.nome  = nome;
-  usuarioLogado.cargo = cargo;
-  usuarioLogado.email = email;
-
-  atualizarUI();
+  if (usuarioLogado) {
+    usuarioLogado.nome  = nome;
+    usuarioLogado.cargo = cargo;
+    usuarioLogado.email = email;
+    atualizarUI(usuarioLogado);
+  }
 
   // TODO: await fetch('/api/perfil', { method: 'PUT', body: JSON.stringify({ nome, cargo, email }) })
   alert('Perfil atualizado com sucesso!');
 }
 
 
-/* ════════════════════════════════════════
-   HELPERS
-════════════════════════════════════════ */
 function formatarData(iso) {
   if (!iso) return '—';
   const [y, m, d] = iso.split('-');
@@ -493,10 +524,6 @@ function formatarData(iso) {
 }
 
 
-/* ════════════════════════════════════════
-   INICIALIZAÇÃO — roda ao carregar a página
-════════════════════════════════════════ */
-atualizarUI();
 renderEstoque();
 renderPedidos();
 renderBuscar();
