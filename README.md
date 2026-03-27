@@ -6,7 +6,7 @@ Sistema desenvolvido para auxiliar na gestão de uma farmácia, com controle de 
 
 - Front end: HTML, CSS, JavaScript
 - Back end: Java + Spring Boot
-- Banco de Dados: H2
+- Banco de Dados: SQLite
 
 ## Equipe
 
