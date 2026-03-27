@@ -18,16 +18,16 @@ public class JwtUtil {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String gerarToken(int matricula) {
+    public String gerarToken(Integer matricula) {
         return Jwts.builder()
                 .setSubject(String.valueOf(matricula))
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) //24h
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 24h
                 .signWith(secretKey)
                 .compact();
     }
 
-    public int pegarMatricula(String token) {
+    public Integer pegarMatricula(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
