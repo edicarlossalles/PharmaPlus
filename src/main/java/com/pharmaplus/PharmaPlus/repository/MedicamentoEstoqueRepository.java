@@ -6,8 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface MedicamentoEstoqueRepository extends JpaRepository<Medicamento, Long> {
+
+
+    List<Medicamento> findAllByOrderByNomeAsc();
 
     @Query("SELECT m FROM Medicamento m WHERE LOWER(m.nome) = LOWER(:nome)")
     Medicamento findByNome(@Param("nome") String nome);

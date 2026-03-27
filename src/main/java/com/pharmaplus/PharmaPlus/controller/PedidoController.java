@@ -53,6 +53,50 @@ public class PedidoController {
         ));
     }
 
+
+    @PatchMapping("/{id}/situacao")
+    public ResponseEntity<Map<String, Object>> atualizarSituacao(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+
+        Pedido pedido = pedidoRepository.findById(id).orElse(null);
+        if (pedido == null) {
+            return ResponseEntity.status(404).body(Map.of(
+                "sucesso", false,
+                "mensagem", "Pedido não encontrado."
+            ));
+        }
+
+        String situacao = (String) body.get("situacao");
+        if (situacao == null || situacao.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "sucesso", false,
+                "mensagem", "Campo 'situacao' é obrigatório."
+            ));
+        }
+
+        List<String> situacoesValidas = List.of(
+            "Pendente", "Aprovado", "Cancelado", "Em Andamento", "Concluído"
+        );
+        if (!situacoesValidas.contains(situacao)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "sucesso", false,
+                "mensagem", "Situação inválida. Valores aceitos: " + situacoesValidas
+            ));
+        }
+
+        pedido.setSituacao(situacao);
+        pedidoRepository.save(pedido);
+
+        return ResponseEntity.ok(Map.of(
+            "sucesso", true,
+            "mensagem", "Situação atualizada para: " + situacao,
+            "id", pedido.getId(),
+            "situacao", situacao
+        ));
+    }
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> deletar(@PathVariable Long id) {
         if (!pedidoRepository.existsById(id)) {

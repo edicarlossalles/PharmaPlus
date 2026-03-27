@@ -22,18 +22,36 @@ public class UsuarioHomeController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getUsuario(@RequestHeader("Authorization") String authHeader) {
-        try {
-            String token = authHeader.replace("Bearer ", "");
-            int matricula = jwtUtil.pegarMatricula(token);
-            Usuario usuario = usuarioRepository.findByMatricula(matricula);
-            return ResponseEntity.ok(usuario);
-        } catch (Exception e) {
+    public ResponseEntity<?> getUsuario(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(401).body(Map.of(
                     "sucesso", false,
-                    "mensagem", "Token inválido ou expirado"
+                    "mensagem", "Token não informado ou formato inválido."
             ));
         }
 
+        try {
+            String token = authHeader.replace("Bearer ", "").trim();
+            Integer matricula = jwtUtil.pegarMatricula(token);
+            Usuario usuario = usuarioRepository.findByMatricula(matricula);
+
+            if (usuario == null) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "sucesso", false,
+                        "mensagem", "Usuário não encontrado."
+                ));
+            }
+
+            usuario.setSenha(null);
+            return ResponseEntity.ok(usuario);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "sucesso", false,
+                    "mensagem", "Token inválido ou expirado."
+            ));
+        }
     }
 }
